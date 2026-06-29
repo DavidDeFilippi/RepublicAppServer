@@ -3,11 +3,12 @@ const fs = require('fs');
 const puppeteer = require('puppeteer');
 const ftp = require("basic-ftp");
 const { Readable } = require("stream");
+const path = require('path');
 
 const dir = 'D://Proyectos//';
 
 async function sendNotification(publicacion) {
-    
+
     // Leer la REST API Key desde el archivo ejemplo.txt dentro de la carpeta indicada
     const OneSignalrestApiKey = fs.readFileSync(dir + 'RepublicApp API Authentication Key.txt', 'utf8').trim(); // Reemplaza lectura desde archivo
     console.log('REST API Key leída:', OneSignalrestApiKey); // Verificar que se ha leído correctamente
@@ -39,7 +40,7 @@ async function sendNotification(publicacion) {
         imagen: publicacion.imagen,
         categoria: publicacion.categoria,
         date: publicacion.date
-    };    
+    };
     notification.included_segments = ['Active Subscriptions'];
 
     const response = await client.createNotification(notification);
@@ -133,19 +134,7 @@ async function searchUpdates() {
 
         const base64Image = await page.$eval('body > section > div > div > div > div > div > div > div > div > div > div > img', el => el.src || el.getAttribute('src'));
 
-        const dateNow = Date.now();
-
-        const ftpRoute = "/public_html/images/pjud"+dateNow+".png";
-
-        const UploadedImage = uploadBase64ToFtp(base64Image, ftpRoute);
-
         let imagen = 'https://sorbeteapps.com/images/pjud-generico.jpeg';
-
-        if(UploadedImage){
-            imagen = "https://sorbeteapps.com/images/pjud"+dateNow+".png";
-        }
-
-        console.log(colores.verde, `Imagen src: ${imagen}`);
 
 
         // const link = await page.$eval('body > main > section > div > div > div > div > h3 > a', el => el.href || el.getAttribute('href'));
@@ -171,6 +160,21 @@ async function searchUpdates() {
         );
 
         if (!existePublicacion) {
+            const dateNow = Date.now();
+
+            const ftpRoute = "/public_html/images/pjud" + dateNow + ".jpg";
+
+            const UploadedImage = await uploadBase64ToFtp(base64Image, ftpRoute);
+
+            console.log(UploadedImage);
+
+            if (UploadedImage) {
+                imagen = "https://sorbeteapps.com/images/pjud" + dateNow + ".jpg";
+            }
+
+            publicacion.imagen = imagen;
+
+            console.log(colores.verde, `Imagen src: ${imagen}`);
             publicaciones.unshift(publicacion);
             noticias.unshift(publicacion);
 
@@ -182,7 +186,7 @@ async function searchUpdates() {
                 console.error('Error al enviar la notificación:', error);
             });
 
-        }else{
+        } else {
             console.log(colores.amarillo, 'La publicación ya existe en el archivo JSON. No se guardará ni se enviará notificación.');
         }
 
@@ -196,14 +200,16 @@ async function searchUpdates() {
 }
 
 async function uploadBase64ToFtp(base64String, remoteFileName) {
+
+    console.log("Base64 image length:", base64String ? base64String.length : 0);
     const client = new ftp.Client();
     let success = false;
     // Set a timeout in milliseconds (e.g., 30 seconds)
-    client.ftp.verbose = true; 
+    client.ftp.verbose = true;
 
     try {
         // 1. Connect to your FTP server
-        const ftpCredentials = JSON.parse(fs.readFileSync(dir+'ftp.json', 'utf8'));
+        const ftpCredentials = JSON.parse(fs.readFileSync(dir + 'ftp.json', 'utf8'));
         await client.access({
             host: ftpCredentials.host,
             user: ftpCredentials.user,
@@ -211,12 +217,11 @@ async function uploadBase64ToFtp(base64String, remoteFileName) {
             secure: false // Set true for FTPS, false for plain FTP
         });
 
-        // 2. Clean the Base64 string and convert it to a Buffer
-        const cleanBase64 = base64String.replace(/^data:.\/*;base64,/, "");
-        const fileBuffer = Buffer.from(cleanBase64, 'base64');
+        imgPath = convertirBase64AJpg(base64String, '/cacheimages/');
 
-        // 3. Convert the Buffer into a readable stream for the FTP client
-        const fileStream = Readable.from(fileBuffer);
+        console.log(imgPath);
+
+        const fileStream = fs.createReadStream(imgPath);
 
         // 4. Upload the stream to the remote path
         console.log("Uploading file...");
@@ -233,6 +238,26 @@ async function uploadBase64ToFtp(base64String, remoteFileName) {
     }
 
     return success;
+}
+
+function convertirBase64AJpg(base64String, outputPath) {
+  if (!base64String) throw new Error('No se recibió una imagen en base64');
+
+  const match = base64String.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,([\s\S]+)$/);
+  if (!match) throw new Error('La cadena no es un data URL válido');
+
+  const cleanBase64 = match[2].replace(/\s+/g, '');
+  const buffer = Buffer.from(cleanBase64, 'base64');
+
+  let outputFilePath = outputPath;
+  if (outputPath.endsWith('/') || outputPath.endsWith('\\')) {
+    outputFilePath = path.join(outputPath, `image-${Date.now()}.jpg`);
+  }
+
+  fs.mkdirSync(path.dirname(outputFilePath), { recursive: true });
+  fs.writeFileSync(outputFilePath, buffer);
+
+  return outputFilePath;
 }
 
 
