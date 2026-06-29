@@ -208,7 +208,7 @@ async function uploadBase64ToFtp(base64String, remoteFileName) {
             host: ftpCredentials.host,
             user: ftpCredentials.user,
             password: ftpCredentials.password,
-            secure: true // Set true for FTPS, false for plain FTP
+            secure: false // Set true for FTPS, false for plain FTP
         });
 
         // 2. Clean the Base64 string and convert it to a Buffer
