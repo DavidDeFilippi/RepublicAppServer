@@ -33,6 +33,7 @@ async function sendNotification(publicacion) {
         contenido: publicacion.contenido,
         link: publicacion.link,
         imagen: publicacion.imagen,
+        categoria: publicacion.categoria,
         date: publicacion.date
     };    
     notification.included_segments = ['Active Subscriptions'];
@@ -126,10 +127,12 @@ async function searchUpdates() {
             contenido: contents,
             link: link,
             imagen: imagen,
+            categoria: 'Gobierno',
             date: new Date().toLocaleDateString('es-CL', { year: 'numeric', month: '2-digit', day: '2-digit' }) + ' ' + new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
         };
 
         const publicaciones = readJsonAsArray('gob.json');
+        const noticias = readJsonAsArray('noticias.json');
 
         const existePublicacion = publicaciones.some(pub =>
             pub.link === publicacion.link ||
@@ -139,8 +142,10 @@ async function searchUpdates() {
 
         if (!existePublicacion) {
             publicaciones.push(publicacion);
+            noticias.push(publicacion);
 
             fs.writeFileSync('gob.json', JSON.stringify(publicaciones, null, 2), 'utf8');
+            fs.writeFileSync('noticias.json', JSON.stringify(noticias, null, 2), 'utf8');
             console.log(colores.verde, 'Publicación guardada en JSON como array:', JSON.stringify(publicaciones, null, 2));
 
             sendNotification(publicacion).catch(error => {
