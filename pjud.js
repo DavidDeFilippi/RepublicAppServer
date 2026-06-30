@@ -61,6 +61,34 @@ function readJsonAsArray(filePath) {
     return Array.isArray(data) ? data : [data];
 }
 
+function isBase64Image(str) {
+    // Regex to match a valid Base64 Data URL with an image MIME type
+    const regex = /^data:image\/(png|jpeg|jpg|gif|webp|svg\+xml|\*);base64,[A-Za-z0-9+/]+={0,2}$/;
+
+    return regex.test(str);
+}
+
+function base64ToFile(img) {
+    // Your base64 string (with or without Data URL prefix)
+    const base64Data = img;
+
+    // EXTRAER TODO LO QUE ESTÁ DESPUÉS DE LA PRIMERA COMA
+    // Esto elimina cualquier prefijo: data:image/*;base64, data:image/png;base64, etc.
+    const cleanBase64 = base64Data.split(',')[1];
+    
+    // Si no hay coma, asumimos que ya viene limpio
+    if (!cleanBase64) {
+        throw new Error('El string base64 no tiene un formato válido (falta la coma)');
+    }
+
+    // 2. Convert the clean base64 string into a binary Buffer
+    const buffer = Buffer.from(cleanBase64, 'base64');
+
+    // 3. Write the buffer to a file
+    fs.writeFileSync('cacheimages/pjud_temp.jpg', buffer);
+    console.log('File saved successfully!');
+}
+
 async function searchUpdates() {
     const config = {
         // headless: 'new', // Set to false if you want to open and see the robot in action
@@ -126,16 +154,34 @@ async function searchUpdates() {
         // await page.goBack({ waitUntil: 'load', timeout: 120000 });
         // console.log(colores.verde, 'Volviendo a la página de noticias');
 
+        // return;
+
         const headings = await page.$eval('body > section > div > div > div > div > div > div > div > div > div > h3', el => el.textContent.trim());
         console.log(colores.verde, `Texto del titulo enlace: ${headings}`);
 
         const contents = await page.$eval('body > section > div > div > div > div > div > div > div > div > div > div > div > blockquote', el => el.textContent.trim());
         console.log(colores.verde, `Texto del contenido: ${contents}`);
 
-        const base64Image = await page.$eval('body > section > div > div > div > div > div > div > div > div > div > div > img', el => el.src || el.getAttribute('src'));
+        const imagenGenerica = 'https://sorbeteapps.com/images/pjud_logo.png';
 
-        let imagen = 'https://sorbeteapps.com/images/pjud-generico.jpeg';
+        let imagen = await page.$eval('body > section > div > div > div > div > div > div > div > div > div > div > img', el => el.src || el.getAttribute('src')).catch(()=> imagenGenerica);
 
+        const base64Image = isBase64Image(imagen);
+
+        console.log(colores.amarillo, base64Image);
+
+        if (!base64Image && imagen) {
+            console.log(colores.amarillo, 'La imagen no está en formato Base64.');
+        } else {
+            base64ToFile(imagen);
+        }
+
+        let fecha = await page.$eval('body > section > div > div > div > div > div > div > div > div > div > span', el => el.textContent.trim());
+        console.log(colores.verde, `Fecha de la noticia: ${fecha}`);
+
+        const date = getDate(fecha);
+
+        const fechaLocal = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`;
 
         // const link = await page.$eval('body > main > section > div > div > div > div > h3 > a', el => el.href || el.getAttribute('href'));
         const link = page.url();
@@ -147,8 +193,10 @@ async function searchUpdates() {
             link: link,
             imagen: imagen,
             categoria: 'Poder Judicial',
-            date: new Date().toLocaleDateString('es-CL', { year: 'numeric', month: '2-digit', day: '2-digit' }) + ' ' + new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+            date: fechaLocal,
         };
+
+        console.log(fechaLocal);
 
         const publicaciones = readJsonAsArray('pjud.json');
         const noticias = readJsonAsArray('noticias.json');
@@ -162,25 +210,26 @@ async function searchUpdates() {
         if (!existePublicacion) {
             const dateNow = Date.now();
 
-            const ftpRoute = "/public_html/images/pjud" + dateNow + ".jpg";
+            const remoteFileName = "/public_html/images/pjud" + dateNow + ".jpg";
 
-            const UploadedImage = await uploadBase64ToFtp(base64Image, ftpRoute);
+            const UploadedImage = await uploadBase64ToFtp(remoteFileName);
 
             console.log(UploadedImage);
 
             if (UploadedImage) {
                 imagen = "https://sorbeteapps.com/images/pjud" + dateNow + ".jpg";
+            }else{
+                imagen = imagenGenerica;
             }
 
             publicacion.imagen = imagen;
 
-            console.log(colores.verde, `Imagen src: ${imagen}`);
             publicaciones.unshift(publicacion);
             noticias.unshift(publicacion);
 
             fs.writeFileSync('pjud.json', JSON.stringify(publicaciones, null, 2), 'utf8');
             fs.writeFileSync('noticias.json', JSON.stringify(noticias, null, 2), 'utf8');
-            console.log(colores.verde, 'Publicación guardada en JSON como array:', JSON.stringify(publicaciones, null, 2));
+            // console.log(colores.verde, 'Publicación guardada en JSON como array:', JSON.stringify(publicaciones, null, 2));
 
             sendNotification(publicacion).catch(error => {
                 console.error('Error al enviar la notificación:', error);
@@ -196,12 +245,18 @@ async function searchUpdates() {
         console.log(colores.rojo, e);
     }
 
+    try {
+        // remove temp file, ignore if it doesn't exist
+        await fs.promises.rm('cacheimages/pjud_temp.jpg', { force: true });
+    } catch (e) {
+        console.error('Failed to remove temp file:', e);
+    }
+
     await browser.close();
 }
 
-async function uploadBase64ToFtp(base64String, remoteFileName) {
+async function uploadBase64ToFtp(remoteFileName) {
 
-    console.log("Base64 image length:", base64String ? base64String.length : 0);
     const client = new ftp.Client();
     let success = false;
     // Set a timeout in milliseconds (e.g., 30 seconds)
@@ -217,11 +272,7 @@ async function uploadBase64ToFtp(base64String, remoteFileName) {
             secure: false // Set true for FTPS, false for plain FTP
         });
 
-        imgPath = convertirBase64AJpg(base64String, '/cacheimages/');
-
-        console.log(imgPath);
-
-        const fileStream = fs.createReadStream(imgPath);
+        const fileStream = fs.createReadStream('./cacheimages/pjud_temp.jpg');
 
         // 4. Upload the stream to the remote path
         console.log("Uploading file...");
@@ -240,26 +291,22 @@ async function uploadBase64ToFtp(base64String, remoteFileName) {
     return success;
 }
 
-function convertirBase64AJpg(base64String, outputPath) {
-  if (!base64String) throw new Error('No se recibió una imagen en base64');
+function getDate(dateString){
+    let d = new Date();
+    const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    const dateSringSplit = dateString.split("-");
 
-  const match = base64String.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,([\s\S]+)$/);
-  if (!match) throw new Error('La cadena no es un data URL válido');
+    d.setDate(Number(dateSringSplit[0]));
 
-  const cleanBase64 = match[2].replace(/\s+/g, '');
-  const buffer = Buffer.from(cleanBase64, 'base64');
+    const monthIndex = meses.indexOf(dateSringSplit[1].toLowerCase());
 
-  let outputFilePath = outputPath;
-  if (outputPath.endsWith('/') || outputPath.endsWith('\\')) {
-    outputFilePath = path.join(outputPath, `image-${Date.now()}.jpg`);
-  }
+    if (monthIndex >= 0) {
+        d.setMonth(monthIndex);
+    }
+    
+    d.setFullYear(Number(dateSringSplit[2]));
 
-  fs.mkdirSync(path.dirname(outputFilePath), { recursive: true });
-  fs.writeFileSync(outputFilePath, buffer);
-
-  return outputFilePath;
+    return d;
 }
-
-
 
 searchUpdates();

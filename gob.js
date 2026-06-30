@@ -1,9 +1,14 @@
 const OneSignal = require('@onesignal/node-onesignal');
 const fs = require('fs');
 const puppeteer = require('puppeteer');
+const ftp = require("basic-ftp");
+const { Readable } = require("stream");
+const path = require('path');
+
+const dir = 'D://Proyectos//';
 
 async function sendNotification(publicacion) {
-    const dir = 'D://Proyectos//';
+    
     // Leer la REST API Key desde el archivo ejemplo.txt dentro de la carpeta indicada
     const OneSignalrestApiKey = fs.readFileSync(dir + 'RepublicApp API Authentication Key.txt', 'utf8').trim(); // Reemplaza lectura desde archivo
     console.log('REST API Key leída:', OneSignalrestApiKey); // Verificar que se ha leído correctamente
@@ -54,6 +59,34 @@ function readJsonAsArray(filePath) {
 
     const data = JSON.parse(raw);
     return Array.isArray(data) ? data : [data];
+}
+
+function isBase64Image(str) {
+    // Regex to match a valid Base64 Data URL with an image MIME type
+    const regex = /^data:image\/(png|jpeg|jpg|gif|webp|svg\+xml|\*);base64,[A-Za-z0-9+/]+={0,2}$/;
+
+    return regex.test(str);
+}
+
+function base64ToFile(img) {
+    // Your base64 string (with or without Data URL prefix)
+    const base64Data = img;
+
+    // EXTRAER TODO LO QUE ESTÁ DESPUÉS DE LA PRIMERA COMA
+    // Esto elimina cualquier prefijo: data:image/*;base64, data:image/png;base64, etc.
+    const cleanBase64 = base64Data.split(',')[1];
+    
+    // Si no hay coma, asumimos que ya viene limpio
+    if (!cleanBase64) {
+        throw new Error('El string base64 no tiene un formato válido (falta la coma)');
+    }
+
+    // 2. Convert the clean base64 string into a binary Buffer
+    const buffer = Buffer.from(cleanBase64, 'base64');
+
+    // 3. Write the buffer to a file
+    fs.writeFileSync('cacheimages/gob_temp.jpg', buffer);
+    console.log('File saved successfully!');
 }
 
 async function searchUpdates() {
@@ -122,13 +155,24 @@ async function searchUpdates() {
         const link = await page.$eval('body > main > section > div > div > div > div > h3 > a', el => el.href || el.getAttribute('href'));
         console.log(colores.verde, `Link del enlace: ${link}`);
 
+        let fecha = await page.$eval('body > main > section:nth-child(3) > div > div > div > div > small', el => el.textContent.trim());
+        console.log(colores.verde, `Fecha de la noticia: ${fecha}`);
+
+        fecha = fecha.replaceAll("de ","");
+
+        console.log(colores.verde, `Fecha de la noticia : ${fecha}`);
+
+        const date = getDate(fecha);
+
+        const fechaLocal = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`;
+
         const publicacion = {
             titulo: headings,
             contenido: contents,
             link: link,
             imagen: imagen,
             categoria: 'Gobierno',
-            date: new Date().toLocaleDateString('es-CL', { year: 'numeric', month: '2-digit', day: '2-digit' }) + ' ' + new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+            date: fechaLocal,
         };
 
         const publicaciones = readJsonAsArray('gob.json');
@@ -141,8 +185,8 @@ async function searchUpdates() {
         );
 
         if (!existePublicacion) {
-            publicaciones.push(publicacion);
-            noticias.push(publicacion);
+            publicaciones.unshift(publicacion);
+            noticias.unshift(publicacion);
 
             fs.writeFileSync('gob.json', JSON.stringify(publicaciones, null, 2), 'utf8');
             fs.writeFileSync('noticias.json', JSON.stringify(noticias, null, 2), 'utf8');
@@ -163,6 +207,60 @@ async function searchUpdates() {
     }
 
     await browser.close();
+}
+
+async function uploadBase64ToFtp(remoteFileName) {
+
+    const client = new ftp.Client();
+    let success = false;
+    // Set a timeout in milliseconds (e.g., 30 seconds)
+    client.ftp.verbose = true;
+
+    try {
+        // 1. Connect to your FTP server
+        const ftpCredentials = JSON.parse(fs.readFileSync(dir + 'ftp.json', 'utf8'));
+        await client.access({
+            host: ftpCredentials.host,
+            user: ftpCredentials.user,
+            password: ftpCredentials.password,
+            secure: false // Set true for FTPS, false for plain FTP
+        });
+
+        const fileStream = fs.createReadStream('./cacheimages/pjud_temp.jpg');
+
+        // 4. Upload the stream to the remote path
+        console.log("Uploading file...");
+        await client.uploadFrom(fileStream, remoteFileName);
+        console.log("Upload successful!");
+        success = true;
+
+    } catch (err) {
+        console.error("FTP Upload failed:", err);
+        success = false;
+    } finally {
+        // 5. Always close the connection
+        client.close();
+    }
+
+    return success;
+}
+
+function getDate(dateString){
+    let d = new Date();
+    const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    const dateSringSplit = dateString.split(" ");
+
+    d.setDate(Number(dateSringSplit[0]));
+
+    const monthIndex = meses.indexOf(dateSringSplit[1].toLowerCase());
+
+    if (monthIndex >= 0) {
+        d.setMonth(monthIndex);
+    }
+    
+    d.setFullYear(Number(dateSringSplit[2]));
+
+    return d;
 }
 
 searchUpdates();
