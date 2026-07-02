@@ -30,8 +30,8 @@ async function sendNotification(publicacion) {
     const notification = new OneSignal.Notification();
     notification.app_id = OneSignalappId;
     notification.template_id = OneSignalTemplateId;
-    notification.headings = { en: publicacion.titulo };
-    notification.contents = { en: publicacion.contenido };
+    notification.headings = { en: publicacion.categoria };
+    notification.contents = { en: publicacion.titulo };
     notification.big_picture = publicacion.imagen;
     notification.data = {
         titulo: publicacion.titulo,
@@ -171,7 +171,7 @@ async function searchUpdates() {
             contenido: contents,
             link: link,
             imagen: imagen,
-            categoria: 'Gobierno',
+            categoria: 'Gobierno de Chile',
             date: fechaLocal,
         };
 
