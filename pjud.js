@@ -30,8 +30,8 @@ async function sendNotification(publicacion) {
     const notification = new OneSignal.Notification();
     notification.app_id = OneSignalappId;
     notification.template_id = OneSignalTemplateId;
-    notification.headings = { en: publicacion.titulo };
-    notification.contents = { en: publicacion.contenido };
+    notification.headings = { en: publicacion.categoria };
+    notification.contents = { en: publicacion.titulo };
     notification.big_picture = publicacion.imagen;
     notification.data = {
         titulo: publicacion.titulo,
@@ -131,7 +131,7 @@ async function searchUpdates() {
             window.chrome = { runtime: {} };
         });
 
-        const url = 'https://www.pjud.cl/prensa-y-comunicaciones/noticias-del-poder-judicial';
+        const url = 'https://www.pjud.cl/';
 
         console.log(await browser.userAgent());
         await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36');
@@ -143,7 +143,7 @@ async function searchUpdates() {
         console.log(colores.verde, `\nIngreso completado \n`);
         console.log(colores.amarillo, `\nEsperando scrap \n`);
 
-        const linkSelector = '#data-news > div:nth-child(1) > a';
+        const linkSelector = '#carouselExampleControls > div > div:nth-child(1) > a';
         await page.waitForSelector(linkSelector, { timeout: 120000 });
         await Promise.all([
             page.waitForNavigation({ waitUntil: 'load', timeout: 120000 }),
