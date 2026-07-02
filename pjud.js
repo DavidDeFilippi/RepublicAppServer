@@ -91,8 +91,8 @@ function base64ToFile(img) {
 
 async function searchUpdates() {
     const config = {
-        // headless: 'new', // Set to false if you want to open and see the robot in action
-        headless: false,
+        headless: 'new', // Set to false if you want to open and see the robot in action
+        // headless: false,
         devtools: false, // Open the devtools panel in a non headless mode
         // executablePath: "chromium",
         executablePath: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
