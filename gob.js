@@ -5,7 +5,8 @@ const ftp = require("basic-ftp");
 const { Readable } = require("stream");
 const path = require('path');
 
-const dir = 'D://Proyectos//';
+// const dir = 'D://Proyectos//';
+const dir = '/home/deltafoxtrot/';
 
 async function sendNotification(publicacion) {
 
@@ -85,7 +86,7 @@ function base64ToFile(img) {
     const buffer = Buffer.from(cleanBase64, 'base64');
 
     // 3. Write the buffer to a file
-    fs.writeFileSync('cacheimages/gob_temp.jpg', buffer);
+    fs.writeFileSync(dir + 'RepublicAppServer/cacheimages/gob_temp.jpg', buffer);
     console.log('File saved successfully!');
 }
 
@@ -94,8 +95,8 @@ async function searchUpdates() {
         headless: 'new', // Set to false if you want to open and see the robot in action
         // headless: false,
         devtools: false, // Open the devtools panel in a non headless mode
-        // executablePath: "chromium",
-        executablePath: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+        executablePath: "/usr/bin/chromium",
+        // executablePath: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
         args: [
             '--disable-blink-features=AutomationControlled',
             '--disable-features=IsolateOrigins,site-per-process',
@@ -116,7 +117,7 @@ async function searchUpdates() {
             '--disable-gpu',
             '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
         ],
-        userDataDir: './gobcachedata', // Specify a user data directory to persist session data
+        userDataDir: dir + 'RepublicAppServer/gobcachedata', // Specify a user data directory to persist session data
     }
 
     const colores = { verde: '\x1b[32m%s\x1b[0m', amarillo: '\x1b[33m%s\x1b[0m', rojo: '\x1b[31m%s\x1b[0m' };
@@ -176,8 +177,8 @@ async function searchUpdates() {
             date: fechaLocal,
         };
 
-        const publicaciones = readJsonAsArray('gob.json');
-        const noticias = readJsonAsArray('noticias.json');
+        const publicaciones = readJsonAsArray(dir+'RepublicAppServer/gob.json');
+        const noticias = readJsonAsArray(dir+'RepublicAppServer/noticias.json');
 
         const existePublicacion = publicaciones.some(pub =>
             pub.link === publicacion.link ||
@@ -189,8 +190,8 @@ async function searchUpdates() {
             publicaciones.unshift(publicacion);
             noticias.unshift(publicacion);
 
-            fs.writeFileSync('gob.json', JSON.stringify(publicaciones, null, 2), 'utf8');
-            fs.writeFileSync('noticias.json', JSON.stringify(noticias, null, 2), 'utf8');
+            fs.writeFileSync(dir + 'RepublicAppServer/gob.json', JSON.stringify(publicaciones, null, 2), 'utf8');
+            fs.writeFileSync(dir + 'RepublicAppServer/noticias.json', JSON.stringify(noticias, null, 2), 'utf8');
             console.log(colores.verde, 'Publicación guardada en JSON como array:', JSON.stringify(publicaciones, null, 2));
 
             sendNotification(publicacion).catch(error => {
@@ -207,9 +208,16 @@ async function searchUpdates() {
         console.log(colores.rojo, e);
     }
 
+    try {
+        // remove temp file, ignore if it doesn't exist
+        await fs.promises.rm(dir + 'RepublicAppServer/cacheimages/gob_temp.jpg', { force: true });
+    } catch (e) {
+        console.error('Failed to remove temp file:', e);
+    }
+
     await browser.close();
 
-    fs.rm('./gobcachedata', { recursive: true, force: true }, (err) => {
+    fs.rm(dir + 'RepublicAppServer/gobcachedata', { recursive: true, force: true }, (err) => {
         if (err) {
             console.error('Error removing cache data directory:', err);
         } else {
@@ -235,7 +243,7 @@ async function uploadBase64ToFtp(remoteFileName) {
             secure: false // Set true for FTPS, false for plain FTP
         });
 
-        const fileStream = fs.createReadStream('./cacheimages/pjud_temp.jpg');
+        const fileStream = fs.createReadStream(dir + 'RepublicAppServer/cacheimages/pjud_temp.jpg');
 
         // 4. Upload the stream to the remote path
         console.log("Uploading file...");

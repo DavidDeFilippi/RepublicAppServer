@@ -1,17 +1,9 @@
 [
   {
-    "titulo": "Cuenta Pública",
-    "contenido": "Congreso Nacional conmemora 215 años de su instalación y se prepara para una nueva Cuenta Pública",
-    "link": "https://www.senado.cl/comunicaciones/noticias/congreso-nacional-conmemora-215-anos-de-su-instalacion-y-se-prepara-para",
-    "imagen": "https://www.senado.cl/_next/image?url=https%3A%2F%2Fcdn.senado.cl%2Fportal-senado-produccion%2Fs3fs-public%2Fstyles%2F400x200%2Fpublic%2F2026-07%2F53573286581_69cd518dc9_k.jpg.webp%3Fitok%3DFg5WQx-L&w=828&q=75",
-    "categoria": "Senado de Chile",
-    "date": "3-7-2026"
-  },
-  {
-    "titulo": "Juzgado laboral ordena a ENAP reincorporar a trabajador despedido por viajar a México para asistir a nacimiento de hijo",
-    "contenido": "El Juzgado de Letras del Trabajo de Punta Arenas acogió la demanda de procedimiento de tutela laboral deducida por trabajador que se desempeñaba como operador de producción, despedido por la Empresa Nacional del Petróleo (ENAP Magallanes) por viajar a México para acompañar a su cónyuge, de dicha nacionalidad, en el parto de hijo.",
-    "link": "https://www.pjud.cl/prensa-y-comunicaciones/noticias-del-poder-judicial/146421",
-    "imagen": "https://sorbeteapps.com/images/pjud1783080645448.jpg",
+    "titulo": "Jóvenes egresan del Tribunal de Tratamiento de Drogas en Antofagasta",
+    "contenido": "En una emotiva ceremonia realizada en dependencias del Juzgado de Garantía de Antofagasta, se felicitó a los jóvenes, quienes ingresaron al programa de Tribunal de Tratamiento de Drogas (TTD-RPA) en diciembre del año pasado, tras cometer un delito por primera vez, y lograron mantener con éxito su tratamiento y rehabilitación por consumo problemático de drogas y/o alcohol, lo que fue supervisado judicialmente.",
+    "link": "https://www.pjud.cl/prensa-y-comunicaciones/noticias-del-poder-judicial/146431",
+    "imagen": "https://sorbeteapps.com/images/pjud1783089696268.jpg",
     "categoria": "Poder Judicial",
     "date": "3-7-2026"
   },
@@ -22,61 +14,5 @@
     "imagen": "https://d3902enfq7h2m2.cloudfront.net/filer_public_thumbnails/public_files/Subidas-desordenadas/sea-aprobacion-presidente-kast-proyectos.jpg__800x450_q85_crop_subsampling-2.jpg",
     "categoria": "Gobierno de Chile",
     "date": "2-7-2026"
-  },
-  {
-    "titulo": "Estudiantes de Derecho de la UTA realizan visita la Corte de Apelaciones de Arica",
-    "contenido": "La delegación estudiantil, que estuvo acompañada por la profesora Natalia Fuentes, ingresó a la Primera Sala, donde pudieron presenciar unas audiencias.",
-    "link": "https://www.pjud.cl/prensa-y-comunicaciones/noticias-del-poder-judicial/146405",
-    "imagen": "https://sorbeteapps.com/images/pjud_logo.png",
-    "categoria": "Poder Judicial",
-    "date": "2-7-2026"
-  },
-  {
-    "titulo": "TOP de Chillán condena a carabinero por acceso ilícito a sistema informático",
-    "contenido": "El Tribunal de Juicio Oral en lo Penal de Chillán condenó a Rodrigo Ignacio Valenzuela Parra a la pena de 541 días de presidio, con el beneficio de la remisión condicional, en calidad de autor del delito consumado de acceso ilegal a sistema informático institucional con divulgación de información.",
-    "link": "https://www.pjud.cl/prensa-y-comunicaciones/noticias-del-poder-judicial/146391",
-    "imagen": "https://sorbeteapps.com/images/pjud_logo.png",
-    "categoria": "Poder Judicial",
-    "date": "2-7-2026"
-  },
-  {
-    "titulo": "Comisión legislará para facilitar el sistema de patentes mineras",
-    "contenido": "Minería aprobó la idea de legislar en torno a un proyecto que regula los derechos y deberes de los concesionarios, aunque subsisten objeciones en varios aspectos. La comisión también revisó con Codel…",
-    "link": "https://www.camara.cl/cms/2026/07/02/comision-legislara-para-facilitar-el-sistema-de-patentes-mineras/",
-    "imagen": "https://www.camara.cl/cms/wp-content/uploads/2026/07/Comision-de-Mineria-300x200.jpg",
-    "categoria": "Cámara de Diputadas y Diputados",
-    "date": "2-7-2026"
-  },
-  {
-    "titulo": "Presidente Kast en Paraguay: Nuevos acuerdos económicos y de seguridad",
-    "contenido": "Los instrumentos corresponden a un convenio para evitar la doble imposición, un memorándum de entendimiento entre los Ministerios del Interior de Chile y Paraguay y un acuerdo para fortalecer la prevención, investigación y asistencia a víctimas de trata de personas.",
-    "link": "https://www.gob.cl/noticias/presidente-kast-paraguay-nuevos-acuerdos-economicos-seguridad/",
-    "imagen": "https://d3902enfq7h2m2.cloudfront.net/filer_public_thumbnails/public_files/Campa%C3%B1as/Corona-Virus/Reportes/acuerdos-bilaterales-paraguay.jpg__800x450_q85_crop_subsampling-2.jpg",
-    "categoria": "Gobierno de Chile",
-    "date": "1-7-2026"
-  },
-  {
-    "titulo": "Causas Tercera Sala de la Corte Suprema",
-    "contenido": "En la audiencia de hoy se revisarán causas de la relatora Gianina Ganzur.",
-    "link": "https://www.pjud.cl/prensa-y-comunicaciones/noticias-del-poder-judicial/146383",
-    "imagen": "https://sorbeteapps.com/images/pjud_logo.png",
-    "categoria": "Poder Judicial",
-    "date": "2-7-2026"
-  },
-  {
-    "titulo": "Balance de seguridad: Caen ingresos irregulares en la frontera y aumentan operativos en las regiones",
-    "contenido": "La semana pasada dejó resultados importantes en seguridad, con medidas que serán reforzadas para los siguientes días con el fin de mantener seguras a las familias de Chile.",
-    "link": "https://www.gob.cl/noticias/balance-seguridad-caen-ingresos-irregulares-frontera-aumentan-operativos-regiones/",
-    "imagen": "https://d3902enfq7h2m2.cloudfront.net/filer_public_thumbnails/public_files/Subidas-desordenadas/comite-policial-29-junio.jpeg__800x450_q85_crop_subsampling-2.jpg",
-    "categoria": "Gobierno",
-    "date": "30-6-2026"
-  },
-  {
-    "titulo": "Corte Suprema acoge demanda de tutela laboral con ocasión del despido",
-    "contenido": "Cuarta Sala del máximo tribunal acogió recurso de queja y ordenó tramitar demanda de tutela laboral con ocasión del despido, declaración de único empleador, indemnización de perjuicios, cobro de prestaciones; y, en subsidio, declaración de único empleador, despido indebido, injustificado o improcedente, indemnización de perjuicios y cobro de prestaciones laborales.",
-    "link": "https://www.pjud.cl/prensa-y-comunicaciones/noticias-del-poder-judicial/146336",
-    "imagen": "https://sorbeteapps.com/images/pjud_logo.png",
-    "categoria": "Poder Judicial",
-    "date": "30-6-2026"
   }
 ]
