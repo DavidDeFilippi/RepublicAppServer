@@ -1,11 +1,14 @@
 const OneSignal = require('@onesignal/node-onesignal');
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const fs = require('fs');
-const puppeteer = require('puppeteer');
 const ftp = require("basic-ftp");
 const { Readable } = require("stream");
 const path = require('path');
 
 const dir = 'D://Proyectos//';
+
+puppeteer.use(StealthPlugin());
 
 async function sendNotification(publicacion) {
 
@@ -31,7 +34,7 @@ async function sendNotification(publicacion) {
     notification.app_id = OneSignalappId;
     notification.template_id = OneSignalTemplateId;
     notification.headings = { en: publicacion.categoria };
-    notification.contents = { en: publicacion.titulo };
+    notification.contents = { en: publicacion.titulo+': '+publicacion.contenido };
     notification.big_picture = publicacion.imagen;
     notification.data = {
         titulo: publicacion.titulo,
@@ -85,14 +88,14 @@ function base64ToFile(img) {
     const buffer = Buffer.from(cleanBase64, 'base64');
 
     // 3. Write the buffer to a file
-    fs.writeFileSync('cacheimages/gob_temp.jpg', buffer);
+    fs.writeFileSync('cacheimages/senado_temp.jpg', buffer);
     console.log('File saved successfully!');
 }
 
 async function searchUpdates() {
     const config = {
-        headless: 'new', // Set to false if you want to open and see the robot in action
-        // headless: false,
+        // headless: 'new', // Set to false if you want to open and see the robot in action
+        headless: false,
         devtools: false, // Open the devtools panel in a non headless mode
         // executablePath: "chromium",
         executablePath: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
@@ -114,9 +117,10 @@ async function searchUpdates() {
             '--mute-audio',
             '--disable-dev-shm-usage',
             '--disable-gpu',
-            '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+            '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+            '--window-size=1920,1080'
         ],
-        userDataDir: './gobcachedata', // Specify a user data directory to persist session data
+        userDataDir: './senadocachedata', // Specify a user data directory to persist session data
     }
 
     const colores = { verde: '\x1b[32m%s\x1b[0m', amarillo: '\x1b[33m%s\x1b[0m', rojo: '\x1b[31m%s\x1b[0m' };
@@ -132,7 +136,7 @@ async function searchUpdates() {
             window.chrome = { runtime: {} };
         });
 
-        const url = 'https://www.gob.cl/noticias/';
+        const url = 'https://www.senado.cl/comunicaciones/noticias';
 
         console.log(await browser.userAgent());
         await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36');
@@ -143,40 +147,48 @@ async function searchUpdates() {
 
         console.log(colores.verde, `\nIngreso completado \n`);
         console.log(colores.amarillo, `\nEsperando scrap \n`);
-
-        const headings = await page.$eval('body > main > section > div > div > div > div > h3 > a', el => el.textContent.trim());
+                
+        const headings = await page.$eval('#maincontent > div:nth-child(3) > div > div > div > div:nth-child(2) > div > div > div > div > div > a:nth-child(1) > div > div > div > div > ul > li > p', el => el.textContent.trim());
         console.log(colores.verde, `Texto del titulo enlace: ${headings}`);
 
-        const contents = await page.$eval('body > main > section > div > div > div > div > p', el => el.textContent.trim());
+        const contents = await page.$eval('#maincontent > div:nth-child(3) > div > div > div > div:nth-child(2) > div > div > div > div > div > a:nth-child(1) > div > div > div > h3', el => el.textContent.trim());
         console.log(colores.verde, `Texto del contenido: ${contents}`);
 
-        const imagen = await page.$eval('body > main > section > div > div > div > div > a > img', el => el.src || el.getAttribute('src'));
-        console.log(colores.verde, `Imagen src: ${imagen}`);
+        const imagenGenerica = 'https://sorbeteapps.com/images/senado_logo.png';
 
-        const link = await page.$eval('body > main > section > div > div > div > div > h3 > a', el => el.href || el.getAttribute('href'));
-        console.log(colores.verde, `Link del enlace: ${link}`);
+        let imagen = await page.$eval('#maincontent > div:nth-child(3) > div > div > div > div:nth-child(2) > div > div > div > div > div > a:nth-child(1) > div > div > img', el => el.src || el.getAttribute('src')).catch(()=> imagenGenerica);
 
-        let fecha = await page.$eval('body > main > section:nth-child(3) > div > div > div > div > small', el => el.textContent.trim());
+        const base64Image = isBase64Image(imagen);
+
+        console.log(colores.amarillo, base64Image);
+
+        if (!base64Image && imagen) {
+            console.log(colores.amarillo, 'La imagen no está en formato Base64.');
+        } else {
+            base64ToFile(imagen);
+        }
+
+        let fecha = await page.$eval('#maincontent > div:nth-child(3) > div > div > div > div:nth-child(2) > div > div > div > div > div > a:nth-child(1) > div > div > div > p', el => el.textContent.trim());
         console.log(colores.verde, `Fecha de la noticia: ${fecha}`);
-
-        fecha = fecha.replaceAll("de ", "");
-
-        console.log(colores.verde, `Fecha de la noticia : ${fecha}`);
 
         const date = getDate(fecha);
 
         const fechaLocal = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`;
 
+        const link = await page.$eval('#maincontent > div:nth-child(3) > div > div > div > div:nth-child(2) > div > div > div > div > div > a:nth-child(1)', el => el.href || el.getAttribute('href'));
+        console.log(colores.verde, `Link del enlace: ${link}`);
         const publicacion = {
             titulo: headings,
             contenido: contents,
             link: link,
             imagen: imagen,
-            categoria: 'Gobierno de Chile',
+            categoria: 'Senado de Chile',
             date: fechaLocal,
         };
 
-        const publicaciones = readJsonAsArray('gob.json');
+        console.log(fechaLocal);
+
+        const publicaciones = readJsonAsArray('senado.json');
         const noticias = readJsonAsArray('noticias.json');
 
         const existePublicacion = publicaciones.some(pub =>
@@ -186,12 +198,28 @@ async function searchUpdates() {
         );
 
         if (!existePublicacion) {
+            // const dateNow = Date.now();
+
+            // const remoteFileName = "/public_html/images/senado" + dateNow + ".jpg";
+
+            // const UploadedImage = await uploadBase64ToFtp(remoteFileName);
+
+            // console.log(UploadedImage);
+
+            // if (UploadedImage) {
+            //     imagen = "https://sorbeteapps.com/images/senado" + dateNow + ".jpg";
+            // } else {
+            //     imagen = imagenGenerica;
+            // }
+
+            publicacion.imagen = imagen;
+
             publicaciones.unshift(publicacion);
             noticias.unshift(publicacion);
 
-            fs.writeFileSync('gob.json', JSON.stringify(publicaciones, null, 2), 'utf8');
+            fs.writeFileSync('senado.json', JSON.stringify(publicaciones, null, 2), 'utf8');
             fs.writeFileSync('noticias.json', JSON.stringify(noticias, null, 2), 'utf8');
-            console.log(colores.verde, 'Publicación guardada en JSON como array:', JSON.stringify(publicaciones, null, 2));
+            // console.log(colores.verde, 'Publicación guardada en JSON como array:', JSON.stringify(publicaciones, null, 2));
 
             sendNotification(publicacion).catch(error => {
                 console.error('Error al enviar la notificación:', error);
@@ -207,15 +235,22 @@ async function searchUpdates() {
         console.log(colores.rojo, e);
     }
 
+    try {
+        // remove temp file, ignore if it doesn't exist
+        await fs.promises.rm('cacheimages/senado_temp.jpg', { force: true });
+    } catch (e) {
+        console.error('Failed to remove temp file:', e);
+    }
+
     await browser.close();
 
-    fs.rm('./gobcachedata', { recursive: true, force: true }, (err) => {
+    fs.rm('./senadocachedata', { recursive: true, force: true }, (err) => {
         if (err) {
             console.error('Error removing cache data directory:', err);
         } else {
             console.log('Cache data directory removed successfully.');
         }
-    });
+    });       
 }
 
 async function uploadBase64ToFtp(remoteFileName) {
@@ -235,7 +270,7 @@ async function uploadBase64ToFtp(remoteFileName) {
             secure: false // Set true for FTPS, false for plain FTP
         });
 
-        const fileStream = fs.createReadStream('./cacheimages/pjud_temp.jpg');
+        const fileStream = fs.createReadStream('./cacheimages/senado_temp.jpg');
 
         // 4. Upload the stream to the remote path
         console.log("Uploading file...");
@@ -257,17 +292,17 @@ async function uploadBase64ToFtp(remoteFileName) {
 function getDate(dateString) {
     let d = new Date();
     const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-    const dateSringSplit = dateString.split(" ");
+    const dateStringSplit = dateString.replaceAll(" de ", " ").split(" ");
 
-    d.setDate(Number(dateSringSplit[0]));
+    d.setDate(Number(dateStringSplit[0]));
 
-    const monthIndex = meses.indexOf(dateSringSplit[1].toLowerCase());
+    const monthIndex = meses.indexOf(dateStringSplit[1].toLowerCase());
 
     if (monthIndex >= 0) {
         d.setMonth(monthIndex);
     }
 
-    d.setFullYear(Number(dateSringSplit[2]));
+    d.setFullYear(Number(dateStringSplit[2]));
 
     return d;
 }

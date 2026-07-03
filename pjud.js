@@ -115,7 +115,9 @@ async function searchUpdates() {
             '--disable-dev-shm-usage',
             '--disable-gpu',
             '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
-        ]
+        ],
+        userDataDir: './pjudcachedata', // Specify a user data directory to persist session data
+
     }
 
     const colores = { verde: '\x1b[32m%s\x1b[0m', amarillo: '\x1b[33m%s\x1b[0m', rojo: '\x1b[31m%s\x1b[0m' };
@@ -253,6 +255,14 @@ async function searchUpdates() {
     }
 
     await browser.close();
+
+    fs.rm('./pjudcachedata', { recursive: true, force: true }, (err) => {
+            if (err) {
+                console.error('Error removing cache data directory:', err);
+            } else {
+                console.log('Cache data directory removed successfully.');
+            }
+        });  
 }
 
 async function uploadBase64ToFtp(remoteFileName) {
