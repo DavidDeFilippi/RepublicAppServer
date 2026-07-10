@@ -7,6 +7,7 @@ const path = require('path');
 
 // const dir = 'D://Proyectos//';
 const dir = '/home/deltafoxtrot/';
+const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 
 async function sendNotification(publicacion) {
 
@@ -40,7 +41,8 @@ async function sendNotification(publicacion) {
         link: publicacion.link,
         imagen: publicacion.imagen,
         categoria: publicacion.categoria,
-        date: publicacion.date
+        date: publicacion.date,
+        timestamp: publicacion.timestamp
     };
     notification.included_segments = ['Active Subscriptions'];
 
@@ -166,7 +168,7 @@ async function searchUpdates() {
 
         const date = getDate(fecha);
 
-        const fechaLocal = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`;
+        const fechaLocal = `${date.getDate()} de ${meses[date.getMonth()]} de ${date.getFullYear()}`;
 
         const publicacion = {
             titulo: headings,
@@ -175,6 +177,7 @@ async function searchUpdates() {
             imagen: imagen,
             categoria: 'Gobierno de Chile',
             date: fechaLocal,
+            timestamp: date.getTime()
         };
 
         const publicaciones = readJsonAsArray(dir+'RepublicAppServer/gob.json');
@@ -264,7 +267,6 @@ async function uploadBase64ToFtp(remoteFileName) {
 
 function getDate(dateString) {
     let d = new Date();
-    const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
     const dateSringSplit = dateString.split(" ");
 
     d.setDate(Number(dateSringSplit[0]));
@@ -276,6 +278,8 @@ function getDate(dateString) {
     }
 
     d.setFullYear(Number(dateSringSplit[2]));
+
+    d.setHours(0, 0, 0, 0);
 
     return d;
 }

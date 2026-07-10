@@ -8,6 +8,7 @@ const path = require('path');
 
 // const dir = 'D://Proyectos//';
 const dir = '/home/deltafoxtrot/';
+const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 
 puppeteer.use(StealthPlugin());
 
@@ -43,7 +44,8 @@ async function sendNotification(publicacion) {
         link: publicacion.link,
         imagen: publicacion.imagen,
         categoria: publicacion.categoria,
-        date: publicacion.date
+        date: publicacion.date,
+        timestamp: publicacion.timestamp
     };
     notification.included_segments = ['Active Subscriptions'];
 
@@ -174,7 +176,7 @@ async function searchUpdates() {
 
         const date = getDate(fecha);
 
-        const fechaLocal = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`;
+        const fechaLocal = `${date.getDate()} de ${meses[date.getMonth()]} de ${date.getFullYear()}`;
 
         const link = await page.$eval('#maincontent > div:nth-child(3) > div > div > div > div:nth-child(2) > div > div > div > div > div > a:nth-child(1)', el => el.href || el.getAttribute('href'));
         console.log(colores.verde, `Link del enlace: ${link}`);
@@ -185,6 +187,7 @@ async function searchUpdates() {
             imagen: imagen,
             categoria: 'Senado de Chile',
             date: fechaLocal,
+            timestamp: date.getTime()
         };
 
         console.log(fechaLocal);
@@ -292,7 +295,7 @@ async function uploadBase64ToFtp(remoteFileName) {
 
 function getDate(dateString) {
     let d = new Date();
-    const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    
     const dateStringSplit = dateString.replaceAll(" de ", " ").split(" ");
 
     d.setDate(Number(dateStringSplit[0]));
@@ -304,6 +307,8 @@ function getDate(dateString) {
     }
 
     d.setFullYear(Number(dateStringSplit[2]));
+
+    d.setHours(0, 0, 0, 0);
 
     return d;
 }
