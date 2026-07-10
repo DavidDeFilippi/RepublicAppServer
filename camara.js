@@ -35,6 +35,7 @@ async function sendNotification(publicacion) {
     notification.headings = { en: publicacion.categoria };
     notification.contents = { en: publicacion.titulo };
     notification.big_picture = publicacion.imagen;
+    notification.ttl = 0;
     notification.data = {
         titulo: publicacion.titulo,
         contenido: publicacion.contenido,
