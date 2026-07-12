@@ -21,8 +21,8 @@ initializeApp({
  */
 async function enviarNotificacionMasiva(publicacion) {
 
-  console.log(publicacion);
-  
+  // console.log(publicacion);
+
   const payload = {
     topic: 'todos', // Nombre del tema masivo
     notification: {
