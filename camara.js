@@ -1,54 +1,16 @@
-const OneSignal = require('@onesignal/node-onesignal');
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const fs = require('fs');
 const ftp = require("basic-ftp");
 const { Readable } = require("stream");
 const path = require('path');
+const { enviarNotificacionMasiva } = require('./firebasepushtest'); 
 
 // const dir = 'D://Proyectos//';
 const dir = '/home/deltafoxtrot/';
 const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 
 puppeteer.use(StealthPlugin());
-
-async function sendNotification(publicacion) {
-
-    // Leer la REST API Key desde el archivo ejemplo.txt dentro de la carpeta indicada
-    const OneSignalrestApiKey = fs.readFileSync(dir + 'RepublicApp API Authentication Key.txt', 'utf8').trim(); // Reemplaza lectura desde archivo
-
-    const OneSignalappId = fs.readFileSync(dir + 'RepublicApp App ID.txt', 'utf8').trim(); // Reemplaza con tu App ID
-
-    const OneSignalTemplateId = fs.readFileSync(dir + 'RepublicApp Template ID.txt', 'utf8').trim(); // Reemplaza con tu Template ID
-
-
-    // 1. Configuración con tus claves
-    const configuration = OneSignal.createConfiguration({
-        restApiKey: OneSignalrestApiKey,
-    });
-
-    const client = new OneSignal.DefaultApi(configuration);
-
-    const notification = new OneSignal.Notification();
-    notification.app_id = OneSignalappId;
-    notification.template_id = OneSignalTemplateId;
-    notification.headings = { en: publicacion.categoria };
-    notification.contents = { en: publicacion.titulo };
-    notification.big_picture = publicacion.imagen;
-    notification.ttl = 0;
-    notification.data = {
-        titulo: publicacion.titulo,
-        contenido: publicacion.contenido,
-        link: publicacion.link,
-        imagen: publicacion.imagen,
-        categoria: publicacion.categoria,
-        date: publicacion.date,
-        timestamp: publicacion.timestamp
-    };
-    notification.included_segments = ['Active Subscriptions'];
-
-    const response = await client.createNotification(notification);
-}
 
 function readJsonAsArray(filePath) {
     if (!fs.existsSync(filePath)) {
@@ -270,9 +232,7 @@ async function searchUpdates() {
             fs.writeFileSync(dir+'RepublicAppServer/noticias.json', JSON.stringify(noticias, null, 2), 'utf8');
             // console.log(colores.verde, 'Publicación guardada en JSON como array:', JSON.stringify(publicaciones, null, 2));
 
-            sendNotification(publicacion).catch(error => {
-                console.error('Error al enviar la notificación:', error);
-            });
+            await enviarNotificacionMasiva(publicacion);
 
         } else {
             console.log(colores.amarillo, 'La publicación ya existe en el archivo JSON. No se guardará ni se enviará notificación.');

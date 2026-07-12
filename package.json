@@ -11,8 +11,8 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@onesignal/node-onesignal": "^5.9.0",
     "basic-ftp": "^6.0.1",
+    "firebase-admin": "^14.1.0",
     "puppeteer": "^25.3.0",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2"
