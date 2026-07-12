@@ -20,6 +20,9 @@ initializeApp({
  * Para esto, los dispositivos deben estar suscritos a un "tema" (ej: 'todos').
  */
 async function enviarNotificacionMasiva(publicacion) {
+
+  console.log(publicacion);
+  
   const payload = {
     topic: 'todos', // Nombre del tema masivo
     notification: {
@@ -35,7 +38,7 @@ async function enviarNotificacionMasiva(publicacion) {
         imagen: publicacion.imagen,
         categoria: publicacion.categoria,
         date: publicacion.date,
-        timestamp: publicacion.timestamp,
+        timestamp: publicacion.timestamp.toString(),
         click_action: 'FLUTTER_NOTIFICATION_CLICK' // Requerido en algunas versiones de Android
     }
   };
