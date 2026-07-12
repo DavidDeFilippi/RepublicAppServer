@@ -3,7 +3,7 @@ const puppeteer = require('puppeteer');
 const ftp = require("basic-ftp");
 const { Readable } = require("stream");
 const path = require('path');
-const { enviarNotificacionMasiva } = require('./firebasepushtest'); 
+const { enviarNotificacionMasiva } = require('./firebasepush'); 
 
 // const dir = 'D://Proyectos//';
 const dir = '/home/deltafoxtrot/';
