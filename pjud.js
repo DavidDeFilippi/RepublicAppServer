@@ -135,11 +135,10 @@ async function searchUpdates() {
                 fechaLocal = `${date.getDate()} de ${meses[date.getMonth()]} de ${date.getFullYear()}`;
                 const hh = date.getHours();
                 const mm = date.getMinutes();
-                const ss = date.getSeconds();
 
                 if (!(hh === 0 && mm === 0 && ss === 0)) {
                     const pad = n => String(n).padStart(2, '0');
-                    fechaLocal += ` ${pad(hh)}:${pad(mm)}:${pad(ss)}`;
+                    fechaLocal += ` ${pad(hh)}:${pad(mm)}`;
                 }
                 timestamp = date.getTime();
             }
