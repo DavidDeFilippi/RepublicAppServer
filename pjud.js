@@ -3,11 +3,14 @@ const puppeteer = require('puppeteer');
 const ftp = require("basic-ftp");
 const { Readable } = require("stream");
 const path = require('path');
-const { enviarNotificacionMasiva } = require('./firebasepush'); 
+const { enviarNotificacionMasiva } = require('./firebasepush');
 
 // const dir = 'D://Proyectos//';
 const dir = '/home/deltafoxtrot/';
-const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+const imagenGenerica = 'https://sorbeteapps.com/images/pjud_logo.png';
+const publicaciones = readJsonAsArray(dir + 'RepublicAppServer/pjud.json');
+const noticias = readJsonAsArray(dir + 'RepublicAppServer/noticias.json');
 
 function readJsonAsArray(filePath) {
     if (!fs.existsSync(filePath)) {
@@ -37,7 +40,7 @@ function base64ToFile(img) {
     // EXTRAER TODO LO QUE ESTÁ DESPUÉS DE LA PRIMERA COMA
     // Esto elimina cualquier prefijo: data:image/*;base64, data:image/png;base64, etc.
     const cleanBase64 = base64Data.split(',')[1];
-    
+
     // Si no hay coma, asumimos que ya viene limpio
     if (!cleanBase64) {
         throw new Error('El string base64 no tiene un formato válido (falta la coma)');
@@ -47,7 +50,7 @@ function base64ToFile(img) {
     const buffer = Buffer.from(cleanBase64, 'base64');
 
     // 3. Write the buffer to a file
-    fs.writeFileSync(dir+'RepublicAppServer/cacheimages/pjud_temp.jpg', buffer);
+    fs.writeFileSync(dir + 'RepublicAppServer/cacheimages/pjud_temp.jpg', buffer);
     console.log('File saved successfully!');
 }
 
@@ -78,7 +81,7 @@ async function searchUpdates() {
             '--disable-gpu',
             '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
         ],
-        userDataDir: dir+'RepublicAppServer/pjudcachedata', // Specify a user data directory to persist session data
+        userDataDir: dir + 'RepublicAppServer/pjudcachedata', // Specify a user data directory to persist session data
 
     }
 
@@ -95,7 +98,7 @@ async function searchUpdates() {
             window.chrome = { runtime: {} };
         });
 
-        const url = 'https://www.pjud.cl/';
+        const url = 'https://www.pjud.cl/prensa-y-comunicaciones/noticias-del-poder-judicial';
 
         console.log(await browser.userAgent());
         await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36');
@@ -107,101 +110,79 @@ async function searchUpdates() {
         console.log(colores.verde, `\nIngreso completado \n`);
         console.log(colores.amarillo, `\nEsperando scrap \n`);
 
-        const linkSelector = '#carouselExampleControls > div > div:nth-child(1) > a';
-        await page.waitForSelector(linkSelector, { timeout: 120000 });
-        await Promise.all([
-            page.waitForNavigation({ waitUntil: 'load', timeout: 120000 }),
-            page.click(linkSelector)
-        ]);
-        console.log(colores.verde, 'Se hizo click en el enlace y se completó la navegación');
+        await page.waitForSelector('#data-news > div.row.mb-2.col-12', { timeout: 120000 });
 
-        // await page.goBack({ waitUntil: 'load', timeout: 120000 });
-        // console.log(colores.verde, 'Volviendo a la página de noticias');
+        // 1. Extrae solo los datos crudos del DOM (en el navegador)
+        const noticiasCrudas = await page.$$eval('#data-news > div.row.mb-2.col-12', elements =>
+            elements.map(el => {
 
-        // return;
+                const titulo = el.querySelector('a > h5')?.textContent.trim() || null;
+                const linkEl = el.querySelector('a');
+                const link = linkEl ? linkEl.href || linkEl.getAttribute('href') : null;
+                const dateText = el.querySelector('small.text-muted.pull-right')?.textContent.trim() || null;
 
-        const headings = await page.$eval('body > section > div > div > div > div > div > div > div > div > div > h3', el => el.textContent.trim());
-        console.log(colores.verde, `Texto del titulo enlace: ${headings}`);
-
-        const contents = await page.$eval('body > section > div > div > div > div > div > div > div > div > div > div > div > blockquote', el => el.textContent.trim());
-        console.log(colores.verde, `Texto del contenido: ${contents}`);
-
-        const imagenGenerica = 'https://sorbeteapps.com/images/pjud_logo.png';
-
-        let imagen = await page.$eval('body > section > div > div > div > div > div > div > div > div > div > div > img', el => el.src || el.getAttribute('src')).catch(()=> imagenGenerica);
-
-        const base64Image = isBase64Image(imagen);
-
-        console.log(colores.amarillo, base64Image);
-
-        if (!base64Image && imagen) {
-            console.log(colores.amarillo, 'La imagen no está en formato Base64.');
-        } else {
-            base64ToFile(imagen);
-        }
-
-        let fecha = await page.$eval('body > section > div > div > div > div > div > div > div > div > div > span', el => el.textContent.trim());
-        console.log(colores.verde, `Fecha de la noticia: ${fecha}`);
-
-        const date = getDate(fecha);
-
-        const fechaLocal = `${date.getDate()} de ${meses[date.getMonth()]} de ${date.getFullYear()}`;
-
-        // const link = await page.$eval('body > main > section > div > div > div > div > h3 > a', el => el.href || el.getAttribute('href'));
-        const link = page.url();
-        console.log(colores.verde, `Link del enlace: ${link}`);
-
-        const publicacion = {
-            titulo: headings,
-            contenido: contents,
-            link: link,
-            imagen: imagen,
-            categoria: 'Poder Judicial',
-            date: fechaLocal,
-            timestamp: date.getTime()
-        };
-
-        console.log(fechaLocal);
-
-        const publicaciones = readJsonAsArray(dir+'RepublicAppServer/pjud.json');
-        const noticias = readJsonAsArray(dir+'RepublicAppServer/noticias.json');
-
-        const existePublicacion = publicaciones.some(pub =>
-            pub.link === publicacion.link ||
-            pub.titulo === publicacion.titulo ||
-            pub.contenido === publicacion.contenido
+                return { titulo, link, dateText };
+            })
         );
 
-        if (!existePublicacion) {
-            const dateNow = Date.now();
+        // 2. Procesa las fechas y genera el objeto final (en Node.js)
+        const noticiasItems = noticiasCrudas.map(item => {
+            const date = item.dateText ? getDate(item.dateText) : null;
+            let fechaLocal = null;
+            let timestamp = null;
 
-            const remoteFileName = "/public_html/images/pjud" + dateNow + ".jpg";
+            if (date) {
+                fechaLocal = `${date.getDate()} de ${meses[date.getMonth()]} de ${date.getFullYear()}`;
+                const hh = date.getHours();
+                const mm = date.getMinutes();
+                const ss = date.getSeconds();
 
-            const UploadedImage = await uploadBase64ToFtp(remoteFileName);
-
-            console.log(UploadedImage);
-
-            if (UploadedImage) {
-                imagen = "https://sorbeteapps.com/images/pjud" + dateNow + ".jpg";
-            }else{
-                imagen = imagenGenerica;
+                if (!(hh === 0 && mm === 0 && ss === 0)) {
+                    const pad = n => String(n).padStart(2, '0');
+                    fechaLocal += ` ${pad(hh)}:${pad(mm)}:${pad(ss)}`;
+                }
+                timestamp = date.getTime();
             }
 
-            publicacion.imagen = imagen;
+            return {
+                titulo: item.titulo,
+                contenido: 'se va',
+                link: item.link,
+                fechaLocal,
+                timestamp,
+                imagen: imagenGenerica,
+                categoria: 'Poder Judicial',
+                relevancia: 0
+            };
+        });
+        
+        // console.log(colores.verde, `Noticias encontradas: ${noticiasItems.length}`);
+        // console.log(colores.amarillo, JSON.stringify(noticiasItems, null, 2));
 
-            publicaciones.unshift(publicacion);
-            noticias.unshift(publicacion);
+        // Por cada noticia encontrada, verificar si ya existe (por link o titulo) y si no, agregarla
+        for (const item of noticiasItems) {
+            const publicacionItem = {
+                titulo: item.titulo,
+                contenido: item.contenido,
+                link: item.link,
+                imagen: imagenGenerica,
+                categoria: item.categoria || 'Poder Judicial',
+                date: item.fechaLocal,
+                timestamp: item.timestamp,
+                relevancia: item.relevancia
+            };
 
-            fs.writeFileSync(dir+'RepublicAppServer/pjud.json', JSON.stringify(publicaciones, null, 2), 'utf8');
-            fs.writeFileSync(dir+'RepublicAppServer/noticias.json', JSON.stringify(noticias, null, 2), 'utf8');
-            // console.log(colores.verde, 'Publicación guardada en JSON como array:', JSON.stringify(publicaciones, null, 2));
+            const existe = publicaciones.some(pub => pub.link === publicacionItem.link && pub.titulo === publicacionItem.titulo);
 
-            await enviarNotificacionMasiva(publicacion);
-
-        } else {
-            console.log(colores.amarillo, 'La publicación ya existe en el archivo JSON. No se guardará ni se enviará notificación.');
+            if (!existe) {
+                publicaciones.unshift(publicacionItem);
+                noticias.unshift(publicacionItem);
+                fs.writeFileSync(dir + 'RepublicAppServer/pjud.json', JSON.stringify(publicaciones, null, 2), 'utf8');
+                fs.writeFileSync(dir + 'RepublicAppServer/noticias.json', JSON.stringify(noticias, null, 2), 'utf8');
+                try { await enviarNotificacionMasiva(publicacionItem); } catch(e){ console.log(colores.rojo, 'Error notificacion', e); }
+                console.log(colores.amarillo, `Nueva noticia agregada: ${item.titulo}`);
+            }
         }
-
 
     } catch (e) {
         console.log(colores.rojo, 'ERROR:');
@@ -210,20 +191,20 @@ async function searchUpdates() {
 
     try {
         // remove temp file, ignore if it doesn't exist
-        await fs.promises.rm(dir+'RepublicAppServer/cacheimages/pjud_temp.jpg', { force: true });
+        await fs.promises.rm(dir + 'RepublicAppServer/cacheimages/pjud_temp.jpg', { force: true });
     } catch (e) {
         console.error('Failed to remove temp file:', e);
     }
 
     await browser.close();
 
-    fs.rm(dir+'RepublicAppServer/pjudcachedata', { recursive: true, force: true }, (err) => {
-            if (err) {
-                console.error('Error removing cache data directory:', err);
-            } else {
-                console.log('Cache data directory removed successfully.');
-            }
-        });  
+    fs.rm(dir + 'RepublicAppServer/pjudcachedata', { recursive: true, force: true }, (err) => {
+        if (err) {
+            console.error('Error removing cache data directory:', err);
+        } else {
+            console.log('Cache data directory removed successfully.');
+        }
+    });
 }
 
 async function uploadBase64ToFtp(remoteFileName) {
@@ -243,7 +224,7 @@ async function uploadBase64ToFtp(remoteFileName) {
             secure: false // Set true for FTPS, false for plain FTP
         });
 
-        const fileStream = fs.createReadStream(dir+'RepublicAppServer/cacheimages/pjud_temp.jpg');
+        const fileStream = fs.createReadStream(dir + 'RepublicAppServer/cacheimages/pjud_temp.jpg');
 
         // 4. Upload the stream to the remote path
         console.log("Uploading file...");
@@ -262,21 +243,27 @@ async function uploadBase64ToFtp(remoteFileName) {
     return success;
 }
 
-function getDate(dateString){
+function getDate(dateString) {
     let d = new Date();
-    const dateSringSplit = dateString.split("-");
+    const [datePart, timePart] = dateString.split(" ");
+    const dateStringSplit = datePart.split("-");
 
-    d.setDate(Number(dateSringSplit[0]));
+    d.setDate(Number(dateStringSplit[0]));
 
-    const monthIndex = meses.indexOf(dateSringSplit[1].toLowerCase());
+    const monthIndex = meses.indexOf(dateStringSplit[1].toLowerCase());
 
     if (monthIndex >= 0) {
         d.setMonth(monthIndex);
     }
-    
-    d.setFullYear(Number(dateSringSplit[2]));
 
-    d.setHours(0, 0, 0, 0);
+    d.setFullYear(Number(dateStringSplit[2]));
+
+    if (timePart) {
+        const [hours, minutes] = timePart.split(":").map(Number);
+        d.setHours(Number.isNaN(hours) ? 0 : hours, Number.isNaN(minutes) ? 0 : minutes, 0, 0);
+    } else {
+        d.setHours(0, 0, 0, 0);
+    }
 
     return d;
 }
