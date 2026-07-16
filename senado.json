@@ -1,5 +1,14 @@
 [
   {
+    "titulo": "Hacienda",
+    "contenido": "Senado comienza votación en particular del proyecto de reconstrucción",
+    "link": "https://www.senado.cl/comunicaciones/noticias/senado-comienza-votacion-en-particular-del-proyecto-de-reconstruccion",
+    "imagen": "https://www.senado.cl/_next/image?url=https%3A%2F%2Fcdn.senado.cl%2Fportal-senado-produccion%2Fs3fs-public%2Fstyles%2F400x200%2Fpublic%2F2026-07%2Fsala-miercoles.jpg.webp%3Fitok%3DAp85Z88p&w=828&q=75",
+    "categoria": "Senado de Chile",
+    "date": "15 de julio de 2026",
+    "timestamp": 1784088000000
+  },
+  {
     "titulo": "Turismo",
     "contenido": "Operadores de turismo deberán acreditar condiciones de seguridad para funcionar",
     "link": "https://www.senado.cl/comunicaciones/noticias/operadores-de-turismo-deberan-acreditar-condiciones-de-seguridad-para",
