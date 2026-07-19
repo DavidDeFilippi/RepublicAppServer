@@ -1,5 +1,14 @@
 [
   {
+    "titulo": "Presidencia del Senado",
+    "contenido": "DECLARACIÓN",
+    "link": "https://www.senado.cl/comunicaciones/noticias/declaracion-1",
+    "imagen": "https://www.senado.cl/_next/image?url=https%3A%2F%2Fweb-back.senado.cl%2Fs3%2Ffiles%2Fstyles%2F400x200%2Fpublic%2F2026-07%2F55220146164_fc1d0918f8_k.jpg.webp%3Fitok%3DYTfQPrN_&w=828&q=75",
+    "categoria": "Senado de Chile",
+    "date": "18 de julio de 2026",
+    "timestamp": 1784347200000
+  },
+  {
     "titulo": "Juzgado de Garantía de Chillán decreta prisión preventiva para cuatro carabineros imputados por delitos de corrupción y abusos procesales",
     "contenido": "se va",
     "link": "https://www.pjud.cl/prensa-y-comunicaciones/noticias-del-poder-judicial/146902",
