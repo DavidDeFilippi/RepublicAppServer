@@ -1,2 +1,3 @@
-2026/07/20-22:33:02.122 1e00ee Creating DB /home/deltafoxtrot/RepublicAppServer/camaracachedata/Default/Extension Rules since it was missing.
-2026/07/20-22:33:02.130 1e00ee Reusing MANIFEST /home/deltafoxtrot/RepublicAppServer/camaracachedata/Default/Extension Rules/MANIFEST-000001
+2026/07/20-22:37:02.277 1e04ee Reusing MANIFEST /home/deltafoxtrot/RepublicAppServer/camaracachedata/Default/Extension Rules/MANIFEST-000001
+2026/07/20-22:37:02.277 1e04ee Recovering log #3
+2026/07/20-22:37:02.277 1e04ee Reusing old log /home/deltafoxtrot/RepublicAppServer/camaracachedata/Default/Extension Rules/000003.log 
