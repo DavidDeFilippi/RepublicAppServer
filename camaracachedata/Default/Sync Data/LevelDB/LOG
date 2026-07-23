@@ -1,2 +1,3 @@
-2026/07/23-16:37:01.582 2a9bf6 Creating DB /home/deltafoxtrot/RepublicAppServer/camaracachedata/Default/Sync Data/LevelDB since it was missing.
-2026/07/23-16:37:01.587 2a9bf6 Reusing MANIFEST /home/deltafoxtrot/RepublicAppServer/camaracachedata/Default/Sync Data/LevelDB/MANIFEST-000001
+2026/07/23-16:41:01.704 2a9fcf Reusing MANIFEST /home/deltafoxtrot/RepublicAppServer/camaracachedata/Default/Sync Data/LevelDB/MANIFEST-000001
+2026/07/23-16:41:01.705 2a9fcf Recovering log #3
+2026/07/23-16:41:01.705 2a9fcf Reusing old log /home/deltafoxtrot/RepublicAppServer/camaracachedata/Default/Sync Data/LevelDB/000003.log 
